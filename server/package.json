@@ -1,0 +1,11 @@
+{
+  "name": "cdn-optimizer-server",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Zero-dependency bridge: serves the dashboard build and runs the cdnopt C++ engine on demand",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": { "node": ">=18" }
+}

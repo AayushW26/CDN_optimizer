@@ -1,0 +1,14 @@
+# build outputs
+core/build/
+build/
+dashboard/node_modules/
+dashboard/dist/
+dashboard/public/data/
+# local
+*.log
+.DS_Store
+.vscode/
+.idea/
+__pycache__/
+experiments/traces/*.csv
+!experiments/traces/README.md
