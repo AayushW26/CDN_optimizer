@@ -348,27 +348,51 @@ Result branchAndBound(const std::vector<Item>& items, i64 C, long long nodeLimit
     long long nodes = 0;
     bool aborted = false;
 
-    std::function<void(std::size_t, i64, double)> dfs = [&](std::size_t k, i64 room, double val) {
-        if (aborted) return;
-        if (++nodes > nodeLimit) {
-            aborted = true;
-            return;
-        }
-        if (val > best + kEps) {
-            best = val;
-            bestSet.assign(path.begin(), path.end());
-        }
-        if (k == n) return;
-        if (val + bound(k, room) <= best * (1 + 1e-10) + kEps) return;  // prune (1e-10 relative tolerance)
-        const Item& it = items[order[k]];
-        if (it.weight <= room) {
-            path.push_back(order[k]);
-            dfs(k + 1, room - it.weight, val + it.value);
-            path.pop_back();
-        }
-        dfs(k + 1, room, val);
+    // Depth-first search with an explicit stack: the include-chain can be as deep as the number of
+    // items that fit (hundreds of thousands on real traces), which overflows the call stack if recursive.
+    // Visit order is identical to the recursive form: include child first, then exclude child.
+    struct Frame {
+        std::size_t k;
+        i64 room;
+        double val;
+        int stage;  // 0 = new node, 1 = include child returned, 2 = exclude child returned
     };
-    dfs(0, C, 0.0);
+    std::vector<Frame> stack;
+    stack.push_back({0, C, 0.0, 0});
+    while (!stack.empty() && !aborted) {
+        Frame& f = stack.back();
+        if (f.stage == 0) {
+            if (++nodes > nodeLimit) {
+                aborted = true;
+                break;
+            }
+            if (f.val > best + kEps) {
+                best = f.val;
+                bestSet.assign(path.begin(), path.end());
+            }
+            if (f.k == n || f.val + bound(f.k, f.room) <= best * (1 + 1e-10) + kEps) {  // leaf or prune
+                stack.pop_back();
+                continue;
+            }
+            const Item& it = items[order[f.k]];
+            const Frame child{f.k + 1, f.room, f.val, 0};
+            if (it.weight <= f.room) {
+                f.stage = 1;
+                path.push_back(order[f.k]);
+                stack.push_back({f.k + 1, f.room - it.weight, f.val + it.value, 0});  // invalidates f
+            } else {
+                f.stage = 2;
+                stack.push_back(child);
+            }
+        } else if (f.stage == 1) {
+            path.pop_back();
+            f.stage = 2;
+            const Frame child{f.k + 1, f.room, f.val, 0};
+            stack.push_back(child);
+        } else {
+            stack.pop_back();
+        }
+    }
 
     r.chosen = bestSet;
     r.nodes = nodes;
