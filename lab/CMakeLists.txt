@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.16)
+project(cachelab CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+find_package(Threads REQUIRED)
+
+add_executable(cachelab src/main.cpp)
+target_link_libraries(cachelab Threads::Threads)
+target_compile_options(cachelab PRIVATE -Wall -Wextra)
+
+add_executable(cachelab_tests tests/test_lab.cpp)
+target_include_directories(cachelab_tests PRIVATE src)
+target_link_libraries(cachelab_tests Threads::Threads)
+target_compile_options(cachelab_tests PRIVATE -Wall -Wextra)
