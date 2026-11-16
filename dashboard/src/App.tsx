@@ -9,17 +9,47 @@ import { Algorithms } from './components/Algorithms';
 import { Abr } from './components/Abr';
 import { DPVisualizer } from './components/DPVisualizer';
 import { LiveLab } from './components/LiveLab';
+import { RealTraces } from './components/RealTraces';
+import { Method } from './components/Method';
+
+// Earlier synthetic-workload study, kept as one section with its own sub-navigation.
+const V1_TABS = [
+  { id: 'v1-overview', label: 'Overview', el: <Overview /> },
+  { id: 'v1-timeline', label: 'Timeline', el: <Timeline /> },
+  { id: 'v1-sweeps', label: 'Sweeps', el: <Sweeps /> },
+  { id: 'v1-ablation', label: 'Ablation', el: <Ablation /> },
+  { id: 'v1-abr', label: 'Multi-bitrate', el: <Abr /> },
+  { id: 'v1-live', label: 'Live lab', el: <LiveLab /> },
+];
+
+function SimulationV1({ sub, go }: { sub: string; go: (id: string) => void }) {
+  const cur = V1_TABS.find((t) => t.id === sub) ?? V1_TABS[0];
+  return (
+    <div>
+      <div className="v1-banner">
+        Earlier stage of the project: the PACK-DP planner on <b>synthetic</b> traffic. On real traces it did not hold up, which led to SHADE.
+      </div>
+      <div className="subnav">
+        <span className="label">Section</span>
+        <div className="seg" role="group" aria-label="Simulation study section">
+          {V1_TABS.map((t) => (
+            <button key={t.id} aria-pressed={cur.id === t.id} onClick={() => go(t.id)}>{t.label}</button>
+          ))}
+        </div>
+      </div>
+      {cur.el}
+    </div>
+  );
+}
 
 const TABS = [
-  { id: 'overview', label: 'Overview', el: <Overview /> },
-  { id: 'timeline', label: 'Timeline', el: <Timeline /> },
-  { id: 'sweeps', label: 'Sweeps', el: <Sweeps /> },
-  { id: 'ablation', label: 'Ablation', el: <Ablation /> },
-  { id: 'daa', label: 'DAA lab', el: <Algorithms /> },
-  { id: 'abr', label: 'Multi-bitrate (MCKP)', el: <Abr /> },
-  { id: 'dp', label: 'DP visualizer', el: <DPVisualizer /> },
-  { id: 'live', label: 'Live lab', el: <LiveLab /> },
+  { id: 'results', label: 'Real-trace results' },
+  { id: 'method', label: 'How SHADE works' },
+  { id: 'daa', label: 'Knapsack solvers' },
+  { id: 'dp', label: 'DP visualizer' },
+  { id: 'v1', label: 'Simulation study (v1)' },
 ];
+const tabOf = (id: string) => (id.startsWith('v1') ? 'v1' : id);
 
 function readStored(key: string, fallback: string) {
   try {
@@ -39,7 +69,7 @@ function store(key: string, v: string) {
 export default function App() {
   const initialTab = () => {
     const h = window.location.hash.slice(1);
-    return TABS.some((t) => t.id === h) ? h : 'overview';
+    return TABS.some((t) => t.id === tabOf(h)) ? h : 'results';
   };
   const [tab, setTab] = useState(initialTab);
   const [pref, setPref] = useState<'auto' | 'light' | 'dark'>(() => readStored('cdn-theme', 'auto') as 'auto' | 'light' | 'dark');
@@ -71,7 +101,7 @@ export default function App() {
             </div>
             <div>
               <h1>CDN Cache Optimizer</h1>
-              <div className="brand-sub">Knapsack DP vs. online caching · Design &amp; Analysis of Algorithms</div>
+              <div className="brand-sub">SHADE: knapsack-dual caching on real CDN traces · Design &amp; Analysis of Algorithms</div>
             </div>
           </div>
           <div className="seg" role="group" aria-label="Theme">
@@ -82,13 +112,20 @@ export default function App() {
         </div>
         <nav className="tabs" role="tablist">
           {TABS.map((t) => (
-            <button key={t.id} role="tab" className="tab" aria-selected={tab === t.id} onClick={() => go(t.id)}>{t.label}</button>
+            <button key={t.id} role="tab" className="tab" aria-selected={tabOf(tab) === t.id} onClick={() => go(t.id)}>{t.label}</button>
           ))}
         </nav>
       </header>
-      <main>{TABS.find((t) => t.id === tab)?.el}</main>
+      <main>
+        {tabOf(tab) === 'results' && <RealTraces />}
+        {tabOf(tab) === 'method' && <Method />}
+        {tabOf(tab) === 'daa' && <Algorithms />}
+        {tabOf(tab) === 'dp' && <DPVisualizer />}
+        {tabOf(tab) === 'v1' && <SimulationV1 sub={tab} go={go} />}
+      </main>
       <div className="footer">
-        All results are produced by the C++ engine in <code>core/</code> (<code>cdnopt experiment all</code>). * = oracle with future knowledge (reference bound).
+        Real-trace results: <code>lab/</code> (<code>lab/experiments/run_heldout.sh</code>). Knapsack solvers and the v1 study: <code>core/</code>.
+        * = offline reference with future knowledge.
       </div>
     </ModeContext.Provider>
   );

@@ -79,11 +79,11 @@ def miss_curves(metric, fname, ylabel, shade_name="SHADE"):
         xs = [100 * s for s in sizes]
         bound = {b["cacheFrac"]: b[metric] for b in d["bounds"]}
         ax.plot(xs, [bound[s] for s in sizes], color=INK2, linestyle="--", linewidth=1.5)
-        ax.annotate("PFOO-L bound", (xs[-1], bound[sizes[-1]]), xytext=(4, -2), textcoords="offset points",
+        ax.annotate("PFOO-L bound", (xs[-1], bound[sizes[-1]]), xytext=(4, -7), textcoords="offset points",
                     fontsize=8, color=INK2, va="center")
         if "Belady-Size*" in t:
             ax.plot(xs, [t["Belady-Size*"][s] for s in sizes], color=INK2, linestyle=":", linewidth=1.5)
-            ax.annotate("Belady-Size*", (xs[-1], t["Belady-Size*"][sizes[-1]]), xytext=(4, 2),
+            ax.annotate("Belady-Size*", (xs[-1], t["Belady-Size*"][sizes[-1]]), xytext=(4, 6),
                         textcoords="offset points", fontsize=8, color=INK2, va="center")
         for name, color in SERIES:
             key_name = shade_name if name == "SHADE" else name
@@ -134,24 +134,30 @@ def improvement_figure():
     rows = [r for r in improvement_rows() if r[0] != "w18dev"]
     if not rows:
         return
-    fig, ax = plt.subplots(figsize=(10, 4.2), facecolor=SURFACE)
-    labels, vals, colors = [], [], []
-    for key, label, s, sh, bb, bname, imp, _ in rows:
-        labels.append(f"{label.split(' (')[0]}\n{100 * s:g}% · vs {bname}")
-        vals.append(imp)
-        colors.append("#2a78d6" if imp >= 0 else "#eb6834")
-    xs = range(len(vals))
-    ax.bar(xs, vals, color=colors, width=0.7, edgecolor=SURFACE, linewidth=2)
-    for x, v in zip(xs, vals):
-        ax.annotate(f"{v:+.1f}%", (x, v), xytext=(0, 3 if v >= 0 else -11), textcoords="offset points",
-                    ha="center", fontsize=8, color=INK)
-    ax.axhline(0, color=INK2, linewidth=0.8)
-    ax.set_xticks(list(xs))
-    ax.set_xticklabels(labels, fontsize=6.6, rotation=0)
-    ax.set_ylabel("fewer misses than the best baseline (%)", fontsize=9, color=INK2)
-    ax.set_title("SHADE vs the best of 8 baselines at each cache size (held-out traces; blue = SHADE better)",
-                 fontsize=10.5, color=INK, loc="left")
-    style(ax)
+    keys = [k for k, _ in TRACES if any(r[0] == k for r in rows)]
+    fig, axes = plt.subplots(1, len(keys), figsize=(4.2 * len(keys), 3.8), facecolor=SURFACE, sharey=True)
+    if len(keys) == 1:
+        axes = [axes]
+    for ax, key in zip(axes, keys):
+        sub = [r for r in rows if r[0] == key]
+        xs = list(range(len(sub)))
+        vals = [r[6] for r in sub]
+        ax.bar(xs, vals, color=["#2a78d6" if v >= 0 else "#eb6834" for v in vals], width=0.66,
+               edgecolor=SURFACE, linewidth=2)
+        for x, v in zip(xs, vals):
+            ax.annotate(f"{v:+.1f}%", (x, v), xytext=(0, 3 if v >= 0 else -11), textcoords="offset points",
+                        ha="center", fontsize=8, color=INK)
+        ax.axhline(0, color=INK2, linewidth=0.8)
+        ax.set_xticks(xs)
+        ax.set_xticklabels([f"{100 * r[2]:g}%" for r in sub], fontsize=8.5)
+        names = sorted({r[5] for r in sub})
+        ax.set_title(f"{dict(TRACES)[key].split(' (')[0]}\nbest baseline: {', '.join(names)}", fontsize=9.5,
+                     color=INK, loc="left")
+        ax.set_xlabel("cache size", fontsize=8.5, color=INK2)
+        style(ax)
+    axes[0].set_ylabel("fewer misses than best baseline (%)", fontsize=9, color=INK2)
+    fig.suptitle("SHADE vs the best of 8 baselines (held-out traces; blue = SHADE better, orange = worse)",
+                 fontsize=10.5, color=INK, x=0.01, ha="left")
     fig.tight_layout()
     fig.savefig(os.path.join(FIG, "lab_improvement.png"), dpi=160, facecolor=SURFACE)
     plt.close(fig)
@@ -253,7 +259,7 @@ def markdown():
     rows = improvement_rows()
     if rows:
         lines += ["## SHADE vs the best baseline (object miss ratio)", "",
-                  "| trace | cache | SHADE | best baseline | which | SHADE fewer misses | LRU |",
+                  "| trace | cache | SHADE | best baseline | which | change (+ = SHADE fewer misses) | LRU |",
                   "|---|---:|---:|---:|---|---:|---:|"]
         for key, label, s, sh, bb, bname, imp, lru in rows:
             lines.append(f"| {label} | {100 * s:g}% | {sh:.4f} | {bb:.4f} | {bname} | {imp:+.1f}% | {lru:.4f} |")
@@ -261,7 +267,7 @@ def markdown():
     brows = improvement_rows("byteMissRatio", "SHADE-B")
     if brows:
         lines += ["## SHADE-B (byte objective) vs the best baseline (byte miss ratio)", "",
-                  "| trace | cache | SHADE-B | best baseline | which | SHADE-B fewer missed bytes |",
+                  "| trace | cache | SHADE-B | best baseline | which | change (+ = fewer missed bytes) |",
                   "|---|---:|---:|---:|---|---:|"]
         for key, label, s, sh, bb, bname, imp, _ in brows:
             lines.append(f"| {label} | {100 * s:g}% | {sh:.4f} | {bb:.4f} | {bname} | {imp:+.1f}% |")

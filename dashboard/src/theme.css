@@ -220,3 +220,41 @@ td .best { font-weight: 600; color: var(--ink); }
 .chip.add { background: rgba(27, 175, 122, 0.14); }
 .chip.rm { background: rgba(227, 73, 72, 0.12); }
 .footer { color: var(--muted); font-size: 12px; text-align: center; padding: 24px 16px 40px; }
+
+/* ---------------------------------------------------------------- lab pages */
+.page { display: flex; flex-direction: column; gap: 16px; }
+.page-head { max-width: 860px; }
+.page-head h2 { margin-bottom: 6px; }
+.page-head p { color: var(--ink-2); }
+.stats { display: grid; gap: 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 980px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .stats { grid-template-columns: minmax(0, 1fr); } }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; }
+.controls.tight { gap: 8px; }
+.grid-2 { display: grid; gap: 16px; }
+.muted { color: var(--muted); font-size: 12px; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.prose h3 { margin-bottom: 8px; }
+.prose p, .prose li { color: var(--ink-2); line-height: 1.55; }
+.prose p + p { margin-top: 8px; }
+.prose ul { padding-left: 18px; display: grid; gap: 6px; }
+code.block { display: block; margin: 8px 0; padding: 8px 10px; white-space: normal; }
+.pipeline { display: flex; align-items: stretch; gap: 8px; }
+.pipe-step {
+  flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 10px;
+  background: var(--surface-2); border: 1px solid var(--border); font-size: 13px; color: var(--ink-2);
+}
+.pipe-step b { color: var(--ink); font-size: 14px; }
+.pipe-step.accent { background: var(--accent-wash); border-color: var(--accent); }
+.pipe-n {
+  width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 600;
+  background: var(--accent); color: #fff;
+}
+.pipe-arrow { align-self: center; color: var(--muted); font-size: 18px; }
+@media (max-width: 860px) { .pipeline { flex-direction: column; } .pipe-arrow { transform: rotate(90deg); } }
+.subnav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+.subnav .label { font-size: 13px; color: var(--muted); }
+.v1-banner {
+  font-size: 13px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px; margin-bottom: 16px;
+}

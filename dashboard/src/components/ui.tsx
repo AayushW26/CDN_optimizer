@@ -273,7 +273,7 @@ export function Loading({ error }: { error?: string | null }) {
   return (
     <div className="empty">
       {error ? (
-        <>Could not load results ({error}).<br />Run <code>./core/build/cdnopt experiment all</code> then <code>npm run sync-data</code>.</>
+        <>Results not available yet ({error}).<br />Real-trace results: <code>lab/experiments/run_heldout.sh</code>; v1 study: <code>cdnopt experiment all</code>; then <code>npm run sync-data</code>.</>
       ) : 'Loading…'}
     </div>
   );

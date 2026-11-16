@@ -18,4 +18,15 @@ for (const f of readdirSync(src)) {
     n++;
   }
 }
+// real-trace results from the cache lab
+const labSrc = join(src, 'lab');
+if (existsSync(labSrc)) {
+  mkdirSync(join(dst, 'lab'), { recursive: true });
+  for (const f of readdirSync(labSrc)) {
+    if (f.endsWith('.json')) {
+      cpSync(join(labSrc, f), join(dst, 'lab', f));
+      n++;
+    }
+  }
+}
 console.log(`[sync-data] copied ${n} result files into public/data`);

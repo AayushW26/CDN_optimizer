@@ -13,3 +13,4 @@ __pycache__/
 experiments/traces/*.csv
 !experiments/traces/README.md
 lab/build/
+traces/
